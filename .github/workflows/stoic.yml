@@ -1,44 +1,45 @@
 name: Stoic WhatsApp Twice Daily
 
-
 on:
-schedule:
-- cron: "30 6 * * *" # 08:30 Europe/Berlin (UTC cron)
-- cron: "30 18 * * *" # 20:30 Europe/Berlin
-workflow_dispatch:
-
+  schedule:
+    - cron: "30 6 * * *"   # 08:30 Europe/Berlin (UTC cron)
+    - cron: "30 18 * * *"  # 20:30 Europe/Berlin
+  workflow_dispatch:
 
 permissions:
-contents: write # allow committing updated state.json
-
+  contents: write   # allow committing updated state.json
 
 jobs:
-send:
-runs-on: ubuntu-latest
-env:
-TZ: Europe/Berlin
-TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-TO_WHATSAPP: ${{ secrets.TO_WHATSAPP }}
-TWILIO_FROM: ${{ secrets.TWILIO_FROM }}
-steps:
-- uses: actions/checkout@v4
-with:
-persist-credentials: true
-- uses: actions/setup-python@v5
-with:
-python-version: "3.11"
-- run: pip install -r requirements.txt
-- name: Send message
-run: python send.py
-- name: Commit updated state
-run: |
-if git diff --quiet; then
-echo "No changes to commit."
-else
-git config user.name "stoic-bot"
-git config user.email "stoic-bot@users.noreply.github.com"
-git add state.json
-git commit -m "chore: update state $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-git push
-fi
+  send:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Berlin
+      TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+      TWILIO_AUTH_TOKEN:  ${{ secrets.TWILIO_AUTH_TOKEN }}
+      TO_WHATSAPP:        ${{ secrets.TO_WHATSAPP }}
+      TWILIO_FROM:        ${{ secrets.TWILIO_FROM }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt
+
+      - name: Send message
+        run: python send.py
+
+      - name: Commit updated state
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git config user.name  "stoic-bot"
+            git config user.email "stoic-bot@users.noreply.github.com"
+            git add state.json
+            git commit -m "chore: update state $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git push
+          fi
